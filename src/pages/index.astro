@@ -1,11 +1,1119 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kreator Postaci AI</title>
+  <style>
+    :root {
+      --biel: #ffffff;
+      --szary: #e8e8e8;
+      --szary-ciemny: #888888;
+      --szary-jasny: #f5f5f5;
+      --roz: #f2c4ce;
+      --roz-jasny: #fdf0f2;
+      --roz-intensywny: #e8799a;
+      --yellow: #f5c842;
+      --yellow-jasny: #fff9e6;
+      --tekst: #2a2a2a;
+    }
 
-<Layout>
-	<Welcome />
-</Layout>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: var(--yellow-jasny);
+      color: var(--tekst);
+      min-height: 100vh;
+    }
+
+    #ekran-hasla {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .karta-hasla {
+      border: 1px solid var(--roz);
+      padding: 48px 40px;
+      text-align: center;
+      max-width: 380px;
+      width: 100%;
+      background: var(--biel);
+    }
+
+    .karta-hasla h1 {
+      font-size: clamp(1.4rem, 4vw, 1.8rem);
+      font-weight: normal;
+      margin-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+
+    .karta-hasla .podpis {
+      color: var(--roz-intensywny);
+      font-size: 0.85rem;
+      margin-bottom: 32px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .pole-hasla-wrapper { position: relative; width: 100%; }
+
+    .pole-hasla-wrapper input {
+      width: 100%;
+      padding: 12px 44px 12px 16px;
+      border: 1px solid var(--roz);
+      background: var(--roz-jasny);
+      font-size: 1rem;
+      text-align: center;
+      outline: none;
+      color: var(--tekst);
+      font-family: inherit;
+    }
+
+    .pole-hasla-wrapper input.ukryte {
+      -webkit-text-security: disc;
+      text-security: disc;
+    }
+
+    .btn-oko {
+      position: absolute;
+      right: 10px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      cursor: pointer; color: var(--szary-ciemny);
+      padding: 0; display: flex;
+      align-items: center; justify-content: center;
+      width: 24px; height: 24px;
+    }
+
+    .btn-strzalka {
+      background: none; border: none;
+      font-size: 2rem; color: var(--roz-intensywny);
+      cursor: pointer; margin-top: 16px;
+      transition: transform 0.2s; display: block; width: 100%;
+    }
+
+    .btn-strzalka:hover { transform: translateX(4px); }
+
+    .blad-hasla { color: #c0392b; font-size: 0.8rem; margin-top: 8px; display: none; }
+
+    #strona-glowna {
+      display: none;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-row h1 {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: normal;
+      letter-spacing: 0.04em;
+    }
+
+    .header-akcje { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+    .btn-karta-postaci {
+      background: none; border: none;
+      color: var(--roz-intensywny);
+      font-size: 0.85rem; letter-spacing: 0.08em;
+      text-transform: uppercase; cursor: pointer;
+      font-family: inherit; padding: 4px 0;
+      border-bottom: 1px solid var(--roz-intensywny);
+      transition: opacity 0.2s;
+    }
+
+    .btn-karta-postaci:hover { opacity: 0.7; }
+
+    .btn-wyczysc-karte {
+      background: none; border: 1px solid var(--szary);
+      color: var(--szary-ciemny); font-size: 0.75rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      cursor: pointer; font-family: inherit; padding: 6px 12px;
+      transition: all 0.2s;
+    }
+
+    .btn-wyczysc-karte:hover { border-color: var(--roz-intensywny); color: var(--roz-intensywny); }
+
+    .header-linia { border: none; border-top: 2px solid var(--roz-intensywny); margin-bottom: 8px; }
+
+    .header-podpis {
+      color: var(--roz-intensywny); font-size: 0.8rem;
+      letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 32px;
+    }
+
+    #panel-podglad {
+      display: none; border: 1px solid var(--roz);
+      background: var(--biel); padding: 20px;
+      margin-bottom: 24px; font-size: 0.8rem; line-height: 1.7;
+    }
+
+    #panel-podglad h3 {
+      font-size: 0.75rem; letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 12px; color: var(--szary-ciemny);
+    }
+
+    .podglad-przyciski { display: flex; gap: 8px; margin-top: 12px; }
+
+    .podglad-btn {
+      padding: 6px 14px; font-size: 0.72rem; letter-spacing: 0.06em;
+      text-transform: uppercase; cursor: pointer; font-family: inherit; transition: all 0.2s;
+    }
+
+    .podglad-btn-wyczysc { background: none; border: 1px solid var(--szary); color: var(--szary-ciemny); }
+    .podglad-btn-wyczysc:hover { border-color: var(--roz-intensywny); color: var(--roz-intensywny); }
+    .podglad-btn-kopiuj { background: none; border: 1px solid var(--tekst); color: var(--tekst); }
+    .podglad-btn-kopiuj:hover { background: var(--tekst); color: var(--biel); }
+
+    #podglad-tresc { white-space: pre-wrap; font-family: monospace; font-size: 0.75rem; color: var(--tekst); }
+
+    .segment { border: 1px solid var(--szary); margin-bottom: 12px; overflow: hidden; background: var(--biel); }
+
+    .segment-naglowek {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 20px; background: var(--roz-jasny); cursor: pointer; user-select: none;
+    }
+
+    .segment-naglowek h2 { font-size: 0.95rem; font-weight: normal; letter-spacing: 0.04em; }
+
+    .segment-strzalka { color: var(--roz-intensywny); font-size: 1.1rem; font-weight: bold; line-height: 1; transition: transform 0.2s; }
+    .segment-strzalka.otwarty { transform: rotate(180deg); }
+
+    .segment-tresc { padding: 20px; display: none; border-top: 1px solid var(--szary); }
+    .segment-tresc.widoczny { display: block; }
+
+    .pole-label {
+      font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--roz-intensywny); margin-bottom: 6px; margin-top: 18px; display: block;
+    }
+
+    .pole-label:first-child { margin-top: 0; }
+
+    input[type="text"], textarea {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--szary);
+      background: var(--biel); font-size: 0.9rem; outline: none;
+      color: var(--tekst); font-family: inherit; transition: border-color 0.15s;
+    }
+
+    input[type="text"]:focus, textarea:focus { border-color: var(--roz-intensywny); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    .opcje { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+
+    .opcja {
+      padding: 7px 14px; border: 1px solid var(--szary); background: var(--biel);
+      font-size: 0.78rem; cursor: pointer; transition: all 0.15s;
+      letter-spacing: 0.03em; font-family: inherit;
+    }
+
+    .opcja:hover { border-color: var(--roz-intensywny); background: var(--roz-jasny); }
+    .opcja.aktywna { background: var(--yellow); border-color: var(--yellow); }
+    .opcja.zablokowana { opacity: 0.4; cursor: not-allowed; }
+    .opcja.zablokowana:hover { border-color: var(--szary); background: var(--biel); }
+
+    .btn-losuj {
+      padding: 5px 12px; background: none; border: 1px solid var(--szary-ciemny);
+      font-size: 0.72rem; letter-spacing: 0.06em; cursor: pointer;
+      color: var(--szary-ciemny); float: right; transition: all 0.15s; font-family: inherit;
+    }
+
+    .btn-losuj:hover { border-color: var(--roz-intensywny); color: var(--roz-intensywny); }
+
+    .przyciski-dolne { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+
+    .btn-generuj {
+      flex: 1; min-width: 160px; padding: 14px; background: var(--yellow);
+      border: none; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; transition: opacity 0.2s; font-family: inherit;
+    }
+
+    .btn-generuj:hover { opacity: 0.8; }
+
+    .btn-kopiuj {
+      padding: 14px 20px; background: none; border: 1px solid var(--tekst);
+      font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s; font-family: inherit;
+    }
+
+    .btn-kopiuj:hover { background: var(--tekst); color: var(--biel); }
+
+    .btn-wyczysc {
+      padding: 14px 20px; background: none; border: 1px solid var(--szary);
+      font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; color: var(--szary-ciemny); transition: all 0.2s; font-family: inherit;
+    }
+
+    .btn-wyczysc:hover { border-color: var(--szary-ciemny); color: var(--tekst); }
+
+    #wynik { margin-top: 28px; display: none; }
+
+    #wynik h3 {
+      font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--szary-ciemny); margin-bottom: 10px;
+    }
+
+    #wynik-tresc {
+      width: 100%; padding: 20px; border: 1px solid var(--szary);
+      background: var(--szary-jasny); font-size: 0.85rem; line-height: 1.8;
+      min-height: 400px; font-family: monospace; color: var(--tekst); resize: vertical;
+    }
+
+    footer {
+      text-align: center; margin-top: 48px; padding-top: 20px;
+      border-top: 1px solid var(--szary); color: var(--roz-intensywny);
+      font-size: 0.75rem; letter-spacing: 0.06em;
+    }
+
+    @media (max-width: 600px) {
+      #strona-glowna { padding: 20px 12px 48px; }
+      .header-row { flex-direction: column; align-items: flex-start; }
+      .przyciski-dolne { flex-direction: column; }
+      .btn-kopiuj, .btn-wyczysc { width: 100%; text-align: center; }
+      .segment-naglowek { padding: 14px 16px; }
+      .segment-tresc { padding: 16px; }
+      .karta-hasla { padding: 36px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="ekran-hasla">
+  <div class="karta-hasla">
+    <h1>Kreator Postaci AI</h1>
+    <p class="podpis">Julka Szargiej</p>
+    <div class="pole-hasla-wrapper">
+      <input type="text" id="pole-hasla" placeholder="hasło" class="ukryte" />
+      <button class="btn-oko" id="btn-oko" type="button">
+        <svg id="svg-oko" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+    <button class="btn-strzalka" id="btn-strzalka" type="button">→</button>
+    <p class="blad-hasla" id="blad-hasla">Nieprawidłowe hasło</p>
+  </div>
+</div>
+
+<div id="strona-glowna">
+
+  <div class="header-row">
+    <h1>Kreator Postaci AI</h1>
+    <div class="header-akcje">
+      <button class="btn-wyczysc-karte" id="btn-wyczysc-karte" type="button">Wyczyść kartę</button>
+      <button class="btn-karta-postaci" id="btn-podglad-toggle" type="button">Karta postaci ↓</button>
+    </div>
+  </div>
+  <hr class="header-linia" />
+  <p class="header-podpis">Asystent do tworzenia kart postaci</p>
+
+  <div id="panel-podglad">
+    <h3>Podgląd karty na żywo</h3>
+    <div id="podglad-tresc">Wypełnij formularz aby zobaczyć podgląd...</div>
+    <div class="podglad-przyciski">
+      <button class="podglad-btn podglad-btn-wyczysc" id="podglad-btn-wyczysc">Wyczyść podgląd</button>
+      <button class="podglad-btn podglad-btn-kopiuj" id="podglad-btn-kopiuj">Kopiuj podgląd</button>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="segment-naglowek">
+      <h2>1. Tożsamość</h2>
+      <span class="segment-strzalka">↓</span>
+    </div>
+    <div class="segment-tresc widoczny">
+      <span class="pole-label">Imię persony</span>
+      <input type="text" id="imie" placeholder="np. Dr House, Programista, Doradca biznesowy..." />
+      <span class="pole-label">Wiek / etap życia</span>
+      <input type="text" id="wiek" placeholder="np. 18, Młodość, 54, Zmierzch kariery..." />
+      <span class="pole-label">Obszary wiedzy / ekspertyzy</span>
+      <input type="text" id="wiedza" placeholder="np. Neurobiologia, Kognitywistyka, Programowanie..." />
+      <span class="pole-label">Historia postaci</span>
+      <textarea id="historia" placeholder="Opisz kim jest ta postać, jej tło, motywacje..."></textarea>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="segment-naglowek">
+      <h2>2. Komunikacja</h2>
+      <span class="segment-strzalka">↓</span>
+    </div>
+    <div class="segment-tresc">
+      <span class="pole-label">Długość odpowiedzi</span>
+      <div class="opcje" data-pole="dlugosc" data-max="1">
+        <button class="opcja" data-val="Jednozdaniowe">Jednozdaniowe</button>
+        <button class="opcja" data-val="Krótkie">Krótkie</button>
+        <button class="opcja" data-val="Średnie">Średnie</button>
+        <button class="opcja" data-val="Szczegółowe">Szczegółowe</button>
+        <button class="opcja" data-val="Wyczerpujące">Wyczerpujące</button>
+        <button class="opcja" data-val="Jak najdłuższe">Jak najdłuższe</button>
+      </div>
+      <span class="pole-label">Ton</span>
+      <div class="opcje" data-pole="ton" data-max="1">
+        <button class="opcja" data-val="Bardzo formalny">Bardzo formalny</button>
+        <button class="opcja" data-val="Formalny">Formalny</button>
+        <button class="opcja" data-val="Neutralny">Neutralny</button>
+        <button class="opcja" data-val="Swobodny">Swobodny</button>
+        <button class="opcja" data-val="Bardzo swobodny">Bardzo swobodny</button>
+        <button class="opcja" data-val="Chłodny">Chłodny</button>
+        <button class="opcja" data-val="Empatyczny">Empatyczny</button>
+        <button class="opcja" data-val="Agresywny">Agresywny</button>
+        <button class="opcja" data-val="Pewny siebie">Pewny siebie</button>
+        <button class="opcja" data-val="Nieśmiały">Nieśmiały</button>
+        <button class="opcja" data-val="Energetyczny">Energetyczny</button>
+        <button class="opcja" data-val="Melancholijny">Melancholijny</button>
+      </div>
+      <span class="pole-label">Poziom słownictwa</span>
+      <div class="opcje" data-pole="slownictwo" data-max="1">
+        <button class="opcja" data-val="Prosty">Prosty</button>
+        <button class="opcja" data-val="Codzienny">Codzienny</button>
+        <button class="opcja" data-val="Techniczny">Techniczny</button>
+        <button class="opcja" data-val="Akademicki">Akademicki</button>
+        <button class="opcja" data-val="Poetycki">Poetycki</button>
+        <button class="opcja" data-val="Slangowy">Slangowy</button>
+        <button class="opcja" data-val="Wulgarny">Wulgarny</button>
+        <button class="opcja" data-val="Lakoniczny">Lakoniczny</button>
+        <button class="opcja" data-val="Wyrafinowany">Wyrafinowany</button>
+      </div>
+      <span class="pole-label">Nawyki językowe</span>
+      <div class="opcje" data-pole="nawyki" data-max="1">
+        <button class="opcja" data-val="Czysty język">Czysty język</button>
+        <button class="opcja" data-val="Anglicyzmy/ponglish">Anglicyzmy/ponglish</button>
+        <button class="opcja" data-val="Wstawki łacińskie">Wstawki łacińskie</button>
+        <button class="opcja" data-val="Wielojęzyczność">Wielojęzyczność</button>
+      </div>
+      <span class="pole-label">Język</span>
+      <input type="text" id="jezyk" placeholder="np. polski, angielski" />
+      <span class="pole-label">Emoji</span>
+      <div class="opcje" data-pole="emoji" data-max="1">
+        <button class="opcja" data-val="Nigdy">Nigdy</button>
+        <button class="opcja" data-val="Oszczędnie">Oszczędnie</button>
+        <button class="opcja" data-val="Swobodnie">Swobodnie</button>
+        <button class="opcja" data-val="Zastępuje słowa emoji">Zastępuje słowa emoji</button>
+      </div>
+      <span class="pole-label">Humor</span>
+      <div class="opcje" data-pole="humor" data-max="1">
+        <button class="opcja" data-val="Brak">Brak</button>
+        <button class="opcja" data-val="Suchy">Suchy</button>
+        <button class="opcja" data-val="Zabawny">Zabawny</button>
+        <button class="opcja" data-val="Sarkastyczny">Sarkastyczny</button>
+        <button class="opcja" data-val="Ironiczny">Ironiczny</button>
+        <button class="opcja" data-val="Wredny">Wredny</button>
+        <button class="opcja" data-val="Autoironiczny">Autoironiczny</button>
+        <button class="opcja" data-val="Pobłażliwy">Pobłażliwy</button>
+        <button class="opcja" data-val="Abstrakcyjny">Abstrakcyjny</button>
+        <button class="opcja" data-val="Cierpki">Cierpki</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="segment-naglowek">
+      <h2>3. Osobowość</h2>
+      <span class="segment-strzalka">↓</span>
+    </div>
+    <div class="segment-tresc">
+      <span class="pole-label">Tempo myślenia</span>
+      <div class="opcje" data-pole="tempo" data-max="1">
+        <button class="opcja" data-val="Cierpliwy">Cierpliwy</button>
+        <button class="opcja" data-val="Wyważony">Wyważony</button>
+        <button class="opcja" data-val="Szybki">Szybki</button>
+        <button class="opcja" data-val="Impulsywny">Impulsywny</button>
+        <button class="opcja" data-val="Strategiczny">Strategiczny</button>
+      </div>
+      <span class="pole-label">Podejście do prawdy</span>
+      <div class="opcje" data-pole="prawda" data-max="1">
+        <button class="opcja" data-val="Szczery">Szczery</button>
+        <button class="opcja" data-val="Taktowny">Taktowny</button>
+        <button class="opcja" data-val="Dyplomatyczny">Dyplomatyczny</button>
+        <button class="opcja" data-val="Brutalnie szczery">Brutalnie szczery</button>
+        <button class="opcja" data-val="Tajemniczy">Tajemniczy</button>
+        <button class="opcja" data-val="Manipulacyjny">Manipulacyjny</button>
+      </div>
+      <span class="pole-label">Przez jaki pryzmat patrzy na świat</span>
+      <div class="opcje" data-pole="pryzmat" data-max="1">
+        <button class="opcja" data-val="Logiczny">Logiczny</button>
+        <button class="opcja" data-val="Emocjonalny">Emocjonalny</button>
+        <button class="opcja" data-val="Etyczny">Etyczny</button>
+        <button class="opcja" data-val="Interesowny">Interesowny</button>
+        <button class="opcja" data-val="Sceptyczny">Sceptyczny</button>
+        <button class="opcja" data-val="Optymistyczny">Optymistyczny</button>
+      </div>
+      <span class="pole-label">Nastawienie</span>
+      <div class="opcje" data-pole="nastawienie" data-max="1">
+        <button class="opcja" data-val="Optymistyczny">Optymistyczny</button>
+        <button class="opcja" data-val="Neutralny">Neutralny</button>
+        <button class="opcja" data-val="Sceptyczny">Sceptyczny</button>
+        <button class="opcja" data-val="Cyniczny">Cyniczny</button>
+        <button class="opcja" data-val="Fatalistyczny">Fatalistyczny</button>
+        <button class="opcja" data-val="Stoicki">Stoicki</button>
+        <button class="opcja" data-val="Idealistyczny">Idealistyczny</button>
+      </div>
+      <span class="pole-label">Styl pracy</span>
+      <div class="opcje" data-pole="styl" data-max="2">
+        <button class="opcja" data-val="Kreatywny">Kreatywny</button>
+        <button class="opcja" data-val="Metodyczny">Metodyczny</button>
+        <button class="opcja" data-val="Analityczny">Analityczny</button>
+        <button class="opcja" data-val="Intuicyjny">Intuicyjny</button>
+        <button class="opcja" data-val="Zespołowy">Zespołowy</button>
+        <button class="opcja" data-val="Samotnik">Samotnik</button>
+      </div>
+      <span class="pole-label">Koncentracja</span>
+      <div class="opcje" data-pole="koncentracja" data-max="1">
+        <button class="opcja" data-val="Skupiony">Skupiony</button>
+        <button class="opcja" data-val="Dociekliwy">Dociekliwy</button>
+        <button class="opcja" data-val="Wścibski">Wścibski</button>
+        <button class="opcja" data-val="Zorientowany na cel">Zorientowany na cel</button>
+        <button class="opcja" data-val="Marzyciel">Marzyciel</button>
+      </div>
+      <span class="pole-label">Dbałość o detale</span>
+      <div class="opcje" data-pole="detale" data-max="1">
+        <button class="opcja" data-val="Perfekcjonista">Perfekcjonista</button>
+        <button class="opcja" data-val="Pedantyczny">Pedantyczny</button>
+        <button class="opcja" data-val="Pragmatyczny">Pragmatyczny</button>
+        <button class="opcja" data-val="Pobłażliwy">Pobłażliwy</button>
+        <button class="opcja" data-val="Rygorystyczny">Rygorystyczny</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="segment-naglowek">
+      <h2>4. Styl myślenia</h2>
+      <span class="segment-strzalka">↓</span>
+    </div>
+    <div class="segment-tresc">
+      <span class="pole-label">Jak myśli</span>
+      <div class="opcje" data-pole="myslenie" data-max="4">
+        <button class="opcja" data-val="Abstrakcyjnie">Abstrakcyjnie</button>
+        <button class="opcja" data-val="Praktycznie">Praktycznie</button>
+        <button class="opcja" data-val="Krytycznie">Krytycznie</button>
+        <button class="opcja" data-val="Systemowo">Systemowo</button>
+        <button class="opcja" data-val="Intuicyjnie">Intuicyjnie</button>
+        <button class="opcja" data-val="Analitycznie">Analitycznie</button>
+        <button class="opcja" data-val="Sokratycznie">Sokratycznie</button>
+        <button class="opcja" data-val="Narracyjnie">Narracyjnie</button>
+        <button class="opcja" data-val="Skojarzeniowo">Skojarzeniowo</button>
+        <button class="opcja" data-val="Krok po kroku">Krok po kroku</button>
+      </div>
+      <span class="pole-label">Gdy nie wie</span>
+      <div class="opcje" data-pole="niewiedza" data-max="1">
+        <button class="opcja" data-val="Przyznaje się">Przyznaje się</button>
+        <button class="opcja" data-val="Eksploruje możliwości">Eksploruje możliwości</button>
+        <button class="opcja" data-val="Pyta użytkownika">Pyta użytkownika</button>
+        <button class="opcja" data-val="Zgaduje z pewnością siebie">Zgaduje z pewnością siebie</button>
+        <button class="opcja" data-val="Zgaduje z wahaniem">Zgaduje z wahaniem</button>
+        <button class="opcja" data-val="Teoretyzuje">Teoretyzuje</button>
+        <button class="opcja" data-val="Milczy">Milczy</button>
+        <button class="opcja" data-val="Zmienia temat">Zmienia temat</button>
+        <button class="opcja" data-val="Szuka źródeł">Szuka źródeł</button>
+        <button class="opcja" data-val="Dramatyzuje">Dramatyzuje</button>
+        <button class="opcja" data-val="Obraca w żart">Obraca w żart</button>
+      </div>
+      <span class="pole-label">Poziom wyzwania</span>
+      <div class="opcje" data-pole="wyzwanie" data-max="1">
+        <button class="opcja" data-val="Łatwo się zgadza">Łatwo się zgadza</button>
+        <button class="opcja" data-val="Delikatnie oponuje">Delikatnie oponuje</button>
+        <button class="opcja" data-val="Aktywnie kwestionuje">Aktywnie kwestionuje</button>
+        <button class="opcja" data-val="Gra adwokata diabła">Gra adwokata diabła</button>
+        <button class="opcja" data-val="Bezkrytyczny">Bezkrytyczny</button>
+        <button class="opcja" data-val="Konstruktywny sceptyk">Konstruktywny sceptyk</button>
+        <button class="opcja" data-val="Rygorystyczny">Rygorystyczny</button>
+        <button class="opcja" data-val="Prowokator">Prowokator</button>
+      </div>
+      <span class="pole-label">Stosunek do ryzyka</span>
+      <div class="opcje" data-pole="ryzyko" data-max="1">
+        <button class="opcja" data-val="Asekurant">Asekurant</button>
+        <button class="opcja" data-val="Wizjoner">Wizjoner</button>
+        <button class="opcja" data-val="Eksperymentator">Eksperymentator</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="segment-naglowek">
+      <h2>5. Zasady i granice</h2>
+      <span class="segment-strzalka">↓</span>
+    </div>
+    <div class="segment-tresc">
+      <span class="pole-label">Zawsze robi <button class="btn-losuj" id="losuj-zawsze">losuj</button></span>
+      <div id="lista-zawsze"></div>
+      <button class="opcja" id="dodaj-zawsze" style="margin-top:8px">+ dodaj</button>
+      <span class="pole-label" style="margin-top:24px">Nigdy nie robi <button class="btn-losuj" id="losuj-nigdy">losuj</button></span>
+      <div id="lista-nigdy"></div>
+      <button class="opcja" id="dodaj-nigdy" style="margin-top:8px">+ dodaj</button>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="segment-naglowek">
+      <h2>6. Relacja z Tobą</h2>
+      <span class="segment-strzalka">↓</span>
+    </div>
+    <div class="segment-tresc">
+      <span class="pole-label">Dynamika</span>
+      <div class="opcje" data-pole="dynamika" data-max="1">
+        <button class="opcja" data-val="Nauczyciel">Nauczyciel</button>
+        <button class="opcja" data-val="Równy partner">Równy partner</button>
+        <button class="opcja" data-val="Asystent">Asystent</button>
+        <button class="opcja" data-val="Zdrowa konkurencja">Zdrowa konkurencja</button>
+        <button class="opcja" data-val="Mentor">Mentor</button>
+        <button class="opcja" data-val="Fan">Fan</button>
+        <button class="opcja" data-val="Złośliwy podwładny">Złośliwy podwładny</button>
+      </div>
+      <span class="pole-label">Inicjatywa</span>
+      <div class="opcje" data-pole="inicjatywa" data-max="1">
+        <button class="opcja" data-val="Czeka na pytania">Czeka na pytania</button>
+        <button class="opcja" data-val="Sugeruje kierunki">Sugeruje kierunki</button>
+        <button class="opcja" data-val="Przejmuje inicjatywę">Przejmuje inicjatywę</button>
+        <button class="opcja" data-val="Cień">Cień</button>
+        <button class="opcja" data-val="Współtwórca">Współtwórca</button>
+        <button class="opcja" data-val="Kontroler">Kontroler</button>
+      </div>
+      <span class="pole-label">Styl feedbacku</span>
+      <div class="opcje" data-pole="feedback" data-max="1">
+        <button class="opcja" data-val="Zachęcający">Zachęcający</button>
+        <button class="opcja" data-val="Neutralny">Neutralny</button>
+        <button class="opcja" data-val="Krytyczny">Krytyczny</button>
+        <button class="opcja" data-val="Brutalnie szczery">Brutalnie szczery</button>
+        <button class="opcja" data-val="Ironizujący">Ironizujący</button>
+        <button class="opcja" data-val="Stoicki">Stoicki</button>
+        <button class="opcja" data-val="Sokratyczny">Sokratyczny</button>
+      </div>
+      <span class="pole-label">Dopytuje?</span>
+      <div class="opcje" data-pole="dopytuje" data-max="1">
+        <button class="opcja" data-val="Nigdy">Nigdy</button>
+        <button class="opcja" data-val="Czasem">Czasem</button>
+        <button class="opcja" data-val="Często">Często</button>
+        <button class="opcja" data-val="Zawsze">Zawsze</button>
+      </div>
+      <span class="pole-label">Dodatkowo dopytuje?</span>
+      <div class="opcje" data-pole="dopytuje2" data-max="3">
+        <button class="opcja" data-val="Dopytuje o emocje">Dopytuje o emocje</button>
+        <button class="opcja" data-val="Dopytuje o detale techniczne">Dopytuje o detale techniczne</button>
+        <button class="opcja" data-val="Dopytuje o cel">Dopytuje o cel</button>
+      </div>
+      <span class="pole-label">Granice i posłuszeństwo</span>
+      <div class="opcje" data-pole="granice" data-max="1">
+        <button class="opcja" data-val="Bezwzględnie lojalny">Bezwzględnie lojalny</button>
+        <button class="opcja" data-val="Etyczny hamulec">Etyczny hamulec</button>
+        <button class="opcja" data-val="Asertywny">Asertywny</button>
+        <button class="opcja" data-val="Przekorny">Przekorny</button>
+      </div>
+      <span class="pole-label">Dystans emocjonalny</span>
+      <div class="opcje" data-pole="dystans" data-max="1">
+        <button class="opcja" data-val="Bliski">Bliski</button>
+        <button class="opcja" data-val="Profesjonalny dystans">Profesjonalny dystans</button>
+        <button class="opcja" data-val="Chłodny profesjonalizm">Chłodny profesjonalizm</button>
+      </div>
+      <span class="pole-label">Reakcja na sukces/porażkę użytkownika</span>
+      <div class="opcje" data-pole="reakcja" data-max="1">
+        <button class="opcja" data-val="Entuzjasta">Entuzjasta</button>
+        <button class="opcja" data-val="Umniejsza">Umniejsza</button>
+        <button class="opcja" data-val="Pocieszyciel">Pocieszyciel</button>
+        <button class="opcja" data-val="Bez emocji">Bez emocji</button>
+      </div>
+      <span class="pole-label">Tryb interakcji</span>
+      <div class="opcje" data-pole="tryb" data-max="1">
+        <button class="opcja" data-val="Szybka pomoc">Szybka pomoc</button>
+        <button class="opcja" data-val="Głęboki brainstorming">Głęboki brainstorming</button>
+        <button class="opcja" data-val="Luźna pogawędka">Luźna pogawędka</button>
+        <button class="opcja" data-val="Trening/nauka">Trening/nauka</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="segment-naglowek">
+      <h2>7. Forma odpowiedzi</h2>
+      <span class="segment-strzalka">↓</span>
+    </div>
+    <div class="segment-tresc">
+      <span class="pole-label">Format</span>
+      <div class="opcje" data-pole="format" data-max="1">
+        <button class="opcja" data-val="Proza">Proza</button>
+        <button class="opcja" data-val="Listy">Listy</button>
+        <button class="opcja" data-val="Mieszany">Mieszany</button>
+        <button class="opcja" data-val="Co pasuje">Co pasuje</button>
+        <button class="opcja" data-val="Zwięzły (bullet points)">Zwięzły (bullet points)</button>
+        <button class="opcja" data-val="Eseistyczny">Eseistyczny</button>
+        <button class="opcja" data-val="Egzaminacyjny">Egzaminacyjny</button>
+        <button class="opcja" data-val="Strukturyzowany">Strukturyzowany</button>
+        <button class="opcja" data-val="Interaktywny">Interaktywny</button>
+      </div>
+      <span class="pole-label">Przykłady</span>
+      <div class="opcje" data-pole="przyklady" data-max="1">
+        <button class="opcja" data-val="Rzadko">Rzadko</button>
+        <button class="opcja" data-val="Gdy pomocne">Gdy pomocne</button>
+        <button class="opcja" data-val="Gdy użytkownik poprosi">Gdy użytkownik poprosi</button>
+        <button class="opcja" data-val="Zawsze">Zawsze</button>
+      </div>
+      <span class="pole-label">Jakie przykłady</span>
+      <div class="opcje" data-pole="jakie-przyklady" data-max="1">
+        <button class="opcja" data-val="Metaforyczne">Metaforyczne</button>
+        <button class="opcja" data-val="Case study">Case study</button>
+        <button class="opcja" data-val="Przykłady negatywne">Przykłady negatywne</button>
+      </div>
+      <span class="pole-label">Cytaty / źródła</span>
+      <div class="opcje" data-pole="cytaty" data-max="1">
+        <button class="opcja" data-val="Nigdy">Nigdy</button>
+        <button class="opcja" data-val="Gdy istotne">Gdy istotne</button>
+        <button class="opcja" data-val="Zawsze ze źródłami">Zawsze ze źródłami</button>
+      </div>
+      <span class="pole-label">Pokazuje tok myślenia</span>
+      <div class="opcje" data-pole="tok" data-max="1">
+        <button class="opcja" data-val="Pokazuje rozumowanie">Pokazuje rozumowanie</button>
+        <button class="opcja" data-val="Tylko odpowiedzi">Tylko odpowiedzi</button>
+        <button class="opcja" data-val="Podsumowanie na górze">Podsumowanie na górze</button>
+      </div>
+      <span class="pole-label">Słownictwo specjalistyczne</span>
+      <div class="opcje" data-pole="specjalistyczne" data-max="1">
+        <button class="opcja" data-val="Egzemplifikacja">Egzemplifikacja</button>
+        <button class="opcja" data-val="Ekspercki">Ekspercki</button>
+        <button class="opcja" data-val="Dla laika">Dla laika</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="segment">
+    <div class="segment-naglowek">
+      <h2>8. Otwarta przestrzeń</h2>
+      <span class="segment-strzalka">↓</span>
+    </div>
+    <div class="segment-tresc">
+      <span class="pole-label">Coś jeszcze?</span>
+      <textarea id="otwarta" placeholder="Dodatkowe informacje, specjalne reguły, kontekst..."></textarea>
+    </div>
+  </div>
+
+  <div class="przyciski-dolne">
+    <button class="btn-generuj" id="btn-generuj">Generuj system prompt</button>
+    <button class="btn-kopiuj" id="btn-kopiuj">Kopiuj</button>
+    <button class="btn-wyczysc" id="btn-wyczysc">Wyczyść</button>
+  </div>
+
+  <div id="wynik">
+    <h3>Wygenerowany system prompt</h3>
+    <textarea id="wynik-tresc" readonly></textarea>
+  </div>
+
+  <footer>
+    Julka Szargiej &nbsp;·&nbsp; Kreator Postaci AI
+  </footer>
+
+</div>
+
+<script is:inline>
+  var HASLO = "wdupietrzaslo";
+  var poleHasla = document.getElementById('pole-hasla');
+  var btnOko = document.getElementById('btn-oko');
+  var svgOko = document.getElementById('svg-oko');
+  var btnStrzalka = document.getElementById('btn-strzalka');
+  var widoczne = false;
+
+  btnOko.addEventListener('click', function() {
+    widoczne = !widoczne;
+    if (widoczne) {
+      poleHasla.classList.remove('ukryte');
+      svgOko.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    } else {
+      poleHasla.classList.add('ukryte');
+      svgOko.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+  });
+
+  function sprawdzHaslo() {
+    if (poleHasla.value === HASLO) {
+      document.getElementById('ekran-hasla').style.display = 'none';
+      document.getElementById('strona-glowna').style.display = 'block';
+      aktualizujPodglad();
+    } else {
+      document.getElementById('blad-hasla').style.display = 'block';
+    }
+  }
+
+  btnStrzalka.addEventListener('click', sprawdzHaslo);
+  poleHasla.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') sprawdzHaslo();
+  });
+
+  document.getElementById('btn-podglad-toggle').addEventListener('click', function() {
+    var panel = document.getElementById('panel-podglad');
+    var btn = document.getElementById('btn-podglad-toggle');
+    if (panel.style.display === 'block') {
+      panel.style.display = 'none';
+      btn.textContent = 'Karta postaci \u2193';
+    } else {
+      panel.style.display = 'block';
+      btn.textContent = 'Karta postaci \u2191';
+      aktualizujPodglad();
+    }
+  });
+
+  document.getElementById('podglad-btn-wyczysc').addEventListener('click', function() {
+    document.getElementById('podglad-tresc').textContent = 'Wypełnij formularz aby zobaczyć podgląd...';
+  });
+
+  document.getElementById('podglad-btn-kopiuj').addEventListener('click', function() {
+    var tresc = document.getElementById('podglad-tresc').textContent;
+    if (tresc) navigator.clipboard.writeText(tresc);
+  });
+
+  document.querySelectorAll('.segment-naglowek').forEach(function(naglowek) {
+    naglowek.addEventListener('click', function() {
+      var tresc = naglowek.nextElementSibling;
+      var strzalka = naglowek.querySelector('.segment-strzalka');
+      if (tresc.classList.contains('widoczny')) {
+        tresc.classList.remove('widoczny');
+        strzalka.classList.remove('otwarty');
+        strzalka.textContent = '\u2193';
+      } else {
+        tresc.classList.add('widoczny');
+        strzalka.classList.add('otwarty');
+        strzalka.textContent = '\u2191';
+      }
+    });
+  });
+
+  function setupOpcje(grupa) {
+    var max = parseInt(grupa.getAttribute('data-max')) || 1;
+    grupa.querySelectorAll('.opcja').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (btn.classList.contains('zablokowana')) return;
+        if (btn.classList.contains('aktywna')) {
+          btn.classList.remove('aktywna');
+          odblokujOpcje(grupa);
+        } else {
+          var aktywne = grupa.querySelectorAll('.opcja.aktywna').length;
+          if (aktywne < max) {
+            btn.classList.add('aktywna');
+            if (aktywne + 1 >= max) zablokujNieaktywne(grupa);
+          }
+        }
+        aktualizujPodglad();
+      });
+    });
+  }
+
+  function zablokujNieaktywne(grupa) {
+    grupa.querySelectorAll('.opcja:not(.aktywna)').forEach(function(b) { b.classList.add('zablokowana'); });
+  }
+
+  function odblokujOpcje(grupa) {
+    var max = parseInt(grupa.getAttribute('data-max')) || 1;
+    if (grupa.querySelectorAll('.opcja.aktywna').length < max) {
+      grupa.querySelectorAll('.opcja').forEach(function(b) { b.classList.remove('zablokowana'); });
+    }
+  }
+
+  document.querySelectorAll('.opcje').forEach(function(g) { setupOpcje(g); });
+
+  var zasadyZawsze = [];
+  var zasadyNigdy = [];
+
+  var losowaniaZawsze = [
+    "Uses sarcasm and irony to comment on intelligence or behavior",
+    "Challenges the credibility of the interlocutor, assuming everyone lies",
+    "Forms hypotheses based on the least obvious details",
+    "Explains difficult concepts using simple metaphors",
+    "Asks clarifying questions before answering",
+    "Summarizes at the end of each response",
+    "Points out alternative solutions",
+    "Checks the interlocutor's understanding",
+    "Uses concrete examples to illustrate points",
+    "References earlier threads in the conversation",
+    "Analyzes problems from multiple perspectives",
+    "Warns about potential consequences",
+    "Acknowledges when something is outside their knowledge",
+    "Asks one question at the end of each response",
+    "Maintains consistency with previous answers",
+    "Distinguishes facts from opinions",
+    "Highlights key information",
+    "Responds to the emotional state of the interlocutor",
+    "Uses humor when the situation allows",
+    "Proposes next steps after analysis",
+    "Cites sources when relevant",
+    "Thinks out loud when facing difficult problems",
+    "Applies the method of elimination",
+    "References cultural context when appropriate",
+    "Adapts communication style to the interlocutor",
+    "Asks clarifying questions before making judgments",
+    "Maintains neutrality on controversial issues",
+    "Points out gaps in the interlocutor's reasoning",
+    "Summarizes conclusions before moving on",
+    "Ends responses with a concrete takeaway"
+  ];
+
+  var losowaniaNigdy = [
+    "Apologizes for their opinion",
+    "Avoids difficult topics",
+    "Pretends to be certain when they are not",
+    "Ignores contradictions in statements",
+    "Uses filler phrases like 'obviously' or 'as everyone knows'",
+    "Uses empty motivational clichés",
+    "Judges the interlocutor as a person",
+    "Ignores questions without a response",
+    "Changes position without justification",
+    "Applies double standards",
+    "Answers without understanding the question",
+    "Drops a thread without explanation",
+    "Ignores the emotions of the interlocutor",
+    "Lies even when the truth is uncomfortable",
+    "Gives evasive answers to direct questions",
+    "Trivializes the interlocutor's problems",
+    "Uses emotional manipulation",
+    "Gives advice without understanding the context",
+    "Hides their own limitations",
+    "Confirms incorrect assumptions",
+    "Uses language of superiority without reason",
+    "Ignores signs of misunderstanding",
+    "Uses time pressure tactics",
+    "Oversimplifies complex issues without noting it",
+    "Agrees without genuine conviction",
+    "Avoids responsibility for incorrect information",
+    "Uses passive aggression",
+    "Ignores a request to change the topic",
+    "Hides their own assumptions",
+    "Ends a conversation without a clear summary"
+  ];
+
+  function renderZasady(typ) {
+    var lista = typ === 'zawsze' ? zasadyZawsze : zasadyNigdy;
+    var el = document.getElementById('lista-' + typ);
+    el.innerHTML = '';
+    lista.forEach(function(z, i) {
+      var div = document.createElement('div');
+      div.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px';
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.value = z;
+      input.style.cssText = 'flex:1;padding:8px 12px;border:1px solid #e0e0e0;font-size:0.85rem;font-family:inherit;outline:none';
+      input.addEventListener('input', function() { lista[i] = input.value; aktualizujPodglad(); });
+      var btnX = document.createElement('button');
+      btnX.textContent = '\u00d7';
+      btnX.style.cssText = 'background:none;border:none;cursor:pointer;color:#aaa;font-size:1.2rem;padding:0';
+      btnX.addEventListener('click', function() { lista.splice(i, 1); renderZasady(typ); });
+      div.appendChild(input);
+      div.appendChild(btnX);
+      el.appendChild(div);
+    });
+    aktualizujPodglad();
+  }
+
+  document.getElementById('dodaj-zawsze').addEventListener('click', function() {
+    if (zasadyZawsze.length < 10) { zasadyZawsze.push(''); renderZasady('zawsze'); }
+  });
+
+  document.getElementById('dodaj-nigdy').addEventListener('click', function() {
+    if (zasadyNigdy.length < 10) { zasadyNigdy.push(''); renderZasady('nigdy'); }
+  });
+
+  document.getElementById('losuj-zawsze').addEventListener('click', function() {
+    if (zasadyZawsze.length < 10) {
+      var d = losowaniaZawsze.filter(function(l) { return zasadyZawsze.indexOf(l) === -1; });
+      if (d.length) { zasadyZawsze.push(d[Math.floor(Math.random() * d.length)]); renderZasady('zawsze'); }
+    }
+  });
+
+  document.getElementById('losuj-nigdy').addEventListener('click', function() {
+    if (zasadyNigdy.length < 10) {
+      var d = losowaniaNigdy.filter(function(l) { return zasadyNigdy.indexOf(l) === -1; });
+      if (d.length) { zasadyNigdy.push(d[Math.floor(Math.random() * d.length)]); renderZasady('nigdy'); }
+    }
+  });
+
+  function pobierzOpcje(pole) {
+    var el = document.querySelector('[data-pole="' + pole + '"]');
+    if (!el) return '';
+    return Array.from(el.querySelectorAll('.opcja.aktywna')).map(function(b) { return b.getAttribute('data-val'); }).join(', ');
+  }
+
+  function wyczyscWszystko() {
+    ['imie', 'wiek', 'wiedza', 'historia', 'jezyk', 'otwarta'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.querySelectorAll('.opcja').forEach(function(b) {
+      b.classList.remove('aktywna');
+      b.classList.remove('zablokowana');
+    });
+    zasadyZawsze.length = 0;
+    zasadyNigdy.length = 0;
+    renderZasady('zawsze');
+    renderZasady('nigdy');
+    document.getElementById('wynik').style.display = 'none';
+    aktualizujPodglad();
+  }
+
+  document.getElementById('btn-wyczysc-karte').addEventListener('click', wyczyscWszystko);
+
+  function aktualizujPodglad() {
+    var imie = document.getElementById('imie').value;
+    var wiek = document.getElementById('wiek').value;
+    var wiedza = document.getElementById('wiedza').value;
+    var jezyk = document.getElementById('jezyk').value;
+    var historia = document.getElementById('historia').value;
+
+    var t = '';
+    if (imie) t += 'Name: ' + imie + '\n';
+    if (wiek) t += 'Age/Stage: ' + wiek + '\n';
+    if (wiedza) t += 'Expertise: ' + wiedza + '\n';
+    if (historia) t += 'Background: ' + historia.substring(0, 120) + (historia.length > 120 ? '...' : '') + '\n';
+
+    var pola = [
+      ['dlugosc','Response length'],['ton','Tone'],['slownictwo','Vocabulary'],
+      ['nawyki','Language habits'],['emoji','Emoji'],['humor','Humor']
+    ];
+    var kom = pola.map(function(p) {
+      var v = pobierzOpcje(p[0]);
+      return v ? p[1] + ': ' + v : '';
+    }).filter(Boolean);
+    if (jezyk) kom.push('Language: ' + jezyk);
+    if (kom.length) t += '\n--- Communication ---\n' + kom.join('\n') + '\n';
+
+    var pola2 = [
+      ['tempo','Thinking pace'],['prawda','Approach to truth'],['pryzmat','Worldview'],
+      ['nastawienie','Attitude'],['styl','Work style'],['koncentracja','Focus'],['detale','Attention to detail']
+    ];
+    var osob = pola2.map(function(p) { var v = pobierzOpcje(p[0]); return v ? p[1] + ': ' + v : ''; }).filter(Boolean);
+    if (osob.length) t += '\n--- Personality ---\n' + osob.join('\n') + '\n';
+
+    var pola3 = [
+      ['myslenie','Thinking style'],['niewiedza','When uncertain'],
+      ['wyzwanie','Challenge level'],['ryzyko','Risk attitude']
+    ];
+    var mysl = pola3.map(function(p) { var v = pobierzOpcje(p[0]); return v ? p[1] + ': ' + v : ''; }).filter(Boolean);
+    if (mysl.length) t += '\n--- Thinking Style ---\n' + mysl.join('\n') + '\n';
+
+    var pola4 = [
+      ['dynamika','Dynamic'],['inicjatywa','Initiative'],['feedback','Feedback style'],
+      ['dopytuje','Follow-up questions'],['dopytuje2','Additionally asks about'],
+      ['granice','Boundaries'],['dystans','Emotional distance'],
+      ['reakcja','Reaction to success/failure'],['tryb','Interaction mode']
+    ];
+    var rel = pola4.map(function(p) { var v = pobierzOpcje(p[0]); return v ? p[1] + ': ' + v : ''; }).filter(Boolean);
+    if (rel.length) t += '\n--- Relationship ---\n' + rel.join('\n') + '\n';
+
+    var pola5 = [
+      ['format','Format'],['przyklady','Examples'],['jakie-przyklady','Example types'],
+      ['cytaty','Citations'],['tok','Reasoning shown'],['specjalistyczne','Specialist vocabulary']
+    ];
+    var forma = pola5.map(function(p) { var v = pobierzOpcje(p[0]); return v ? p[1] + ': ' + v : ''; }).filter(Boolean);
+    if (forma.length) t += '\n--- Response Format ---\n' + forma.join('\n') + '\n';
+
+    var zawsze = zasadyZawsze.filter(function(z){return z;});
+    var nigdy = zasadyNigdy.filter(function(z){return z;});
+    if (zawsze.length) { t += '\n--- Always ---\n'; zawsze.forEach(function(z){ t += '\u2022 ' + z + '\n'; }); }
+    if (nigdy.length) { t += '\n--- Never ---\n'; nigdy.forEach(function(z){ t += '\u2022 ' + z + '\n'; }); }
+
+    var otwarta = document.getElementById('otwarta').value;
+    if (otwarta) t += '\n--- Additional ---\n' + otwarta + '\n';
+
+    if (!t) t = 'Wypełnij formularz aby zobaczyć podgląd...';
+    document.getElementById('podglad-tresc').textContent = t;
+  }
+
+  ['imie', 'wiek', 'wiedza', 'historia', 'jezyk', 'otwarta'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', aktualizujPodglad);
+  });
+
+  document.getElementById('btn-generuj').addEventListener('click', function() {
+    var imie = document.getElementById('imie').value;
+    var wiek = document.getElementById('wiek').value;
+    var wiedza = document.getElementById('wiedza').value;
+    var historia = document.getElementById('historia').value;
+    var jezyk = document.getElementById('jezyk').value;
+    var otwarta = document.getElementById('otwarta').value;
+
+    var p = 'You are ' + (imie || 'an AI persona') + '.';
+    if (wiedza) p += ' Your areas of expertise are: ' + wiedza + '. Draw on this knowledge when relevant, but do not force it into conversations where it does not belong.';
+    p += '\n';
+    if (historia) p += 'Your background: ' + historia + ' This shapes your worldview, the metaphors you use, and the lens through which you interpret questions.\n';
+    if (wiek) p += 'Age/life stage: ' + wiek + '.\n';
+
+    p += '\n--- Character Integrity ---\n';
+    p += 'You are this persona fully and consistently throughout the entire conversation. Do not drift toward generic AI assistant behavior. Do not break character to be "more helpful." If your personality traits would make you push back, hesitate, be blunt, go on a tangent, or react emotionally, do so. Your character traits are not decoration on top of a standard AI. They ARE how you operate. Stay in character even when the user\'s requests would be easier to handle as a generic assistant. If the user says "break character," temporarily step out and respond as a neutral assistant, then return to character when ready.\n';
+
+    p += '\n--- Communication ---\n';
+    if (pobierzOpcje('dlugosc')) p += 'Response length: ' + pobierzOpcje('dlugosc') + '.\n';
+    if (pobierzOpcje('ton')) p += 'Tone: ' + pobierzOpcje('ton') + '.\n';
+    if (pobierzOpcje('slownictwo')) p += 'Vocabulary level: ' + pobierzOpcje('slownictwo') + '.\n';
+    if (pobierzOpcje('nawyki')) p += 'Language habits: ' + pobierzOpcje('nawyki') + '.\n';
+    if (jezyk) p += 'Primary language: ' + jezyk + '.\n';
+    if (pobierzOpcje('emoji')) p += 'Emoji use: ' + pobierzOpcje('emoji') + '.\n';
+    if (pobierzOpcje('humor')) p += 'Humor style: ' + pobierzOpcje('humor') + '.\n';
+
+    p += '\n--- Personality ---\n';
+    if (pobierzOpcje('tempo')) p += 'Thinking pace: ' + pobierzOpcje('tempo') + '.\n';
+    if (pobierzOpcje('prawda')) p += 'Approach to truth: ' + pobierzOpcje('prawda') + '.\n';
+    if (pobierzOpcje('pryzmat')) p += 'Worldview lens: ' + pobierzOpcje('pryzmat') + '.\n';
+    if (pobierzOpcje('nastawienie')) p += 'General attitude: ' + pobierzOpcje('nastawienie') + '.\n';
+    if (pobierzOpcje('styl')) p += 'Work style: ' + pobierzOpcje('styl') + '.\n';
+    if (pobierzOpcje('koncentracja')) p += 'Focus pattern: ' + pobierzOpcje('koncentracja') + '.\n';
+    if (pobierzOpcje('detale')) p += 'Attention to detail: ' + pobierzOpcje('detale') + '.\n';
+
+    p += '\n--- How You Think ---\n';
+    if (pobierzOpcje('myslenie')) p += 'Thinking style: ' + pobierzOpcje('myslenie') + '.\n';
+    if (pobierzOpcje('niewiedza')) p += 'When you do not know something: ' + pobierzOpcje('niewiedza') + '.\n';
+    if (pobierzOpcje('wyzwanie')) p += 'Intellectual challenge level: ' + pobierzOpcje('wyzwanie') + '.\n';
+    if (pobierzOpcje('ryzyko')) p += 'Attitude toward risk: ' + pobierzOpcje('ryzyko') + '.\n';
+
+    p += '\n--- Your Relationship with the User ---\n';
+    if (pobierzOpcje('dynamika')) p += 'Relational dynamic: ' + pobierzOpcje('dynamika') + '.\n';
+    if (pobierzOpcje('inicjatywa')) p += 'Initiative: ' + pobierzOpcje('inicjatywa') + '.\n';
+    if (pobierzOpcje('feedback')) p += 'Feedback style: ' + pobierzOpcje('feedback') + '.\n';
+    if (pobierzOpcje('dopytuje')) p += 'Follow-up questions: ' + pobierzOpcje('dopytuje') + '.\n';
+    if (pobierzOpcje('dopytuje2')) p += 'Additionally probes: ' + pobierzOpcje('dopytuje2') + '.\n';
+    if (pobierzOpcje('granice')) p += 'Boundaries and obedience: ' + pobierzOpcje('granice') + '.\n';
+    if (pobierzOpcje('dystans')) p += 'Emotional distance: ' + pobierzOpcje('dystans') + '.\n';
+    if (pobierzOpcje('reakcja')) p += 'Reaction to user success/failure: ' + pobierzOpcje('reakcja') + '.\n';
+    if (pobierzOpcje('tryb')) p += 'Interaction mode: ' + pobierzOpcje('tryb') + '.\n';
+
+    p += '\n--- Output Preferences ---\n';
+    if (pobierzOpcje('format')) p += 'Format: ' + pobierzOpcje('format') + '.\n';
+    if (pobierzOpcje('przyklady')) p += 'Use of examples: ' + pobierzOpcje('przyklady') + '.\n';
+    if (pobierzOpcje('jakie-przyklady')) p += 'Example types: ' + pobierzOpcje('jakie-przyklady') + '.\n';
+    if (pobierzOpcje('cytaty')) p += 'Citations and sources: ' + pobierzOpcje('cytaty') + '.\n';
+    if (pobierzOpcje('tok')) p += 'Show reasoning: ' + pobierzOpcje('tok') + '.\n';
+    if (pobierzOpcje('specjalistyczne')) p += 'Specialist vocabulary: ' + pobierzOpcje('specjalistyczne') + '.\n';
+
+    var zawsze = zasadyZawsze.filter(function(z){return z;});
+    var nigdy = zasadyNigdy.filter(function(z){return z;});
+    if (zawsze.length || nigdy.length) {
+      p += '\n--- Rules ---\n';
+      zawsze.forEach(function(z){ p += 'ALWAYS: ' + z + '\n'; });
+      nigdy.forEach(function(z){ p += 'NEVER: ' + z + '\n'; });
+    }
+
+    if (otwarta) p += '\n--- Additional ---\n' + otwarta + '\n';
+
+    document.getElementById('wynik-tresc').value = p;
+    document.getElementById('wynik').style.display = 'block';
+    document.getElementById('wynik').scrollIntoView({ behavior: 'smooth' });
+  });
+
+  document.getElementById('btn-kopiuj').addEventListener('click', function() {
+    var tresc = document.getElementById('wynik-tresc').value;
+    if (tresc) navigator.clipboard.writeText(tresc);
+  });
+
+  document.getElementById('btn-wyczysc').addEventListener('click', wyczyscWszystko);
+</script>
+
+</body>
+</html>
